@@ -1,0 +1,30 @@
+{
+  "name": "SimpleStorage",
+  "version": "1.0.0",
+  "description": "A Web3 project with a Solidity smart contract for simple data storage, including a front-end interface and deployment scripts.",
+  "main": "index.js",
+  "scripts": {
+    "compile": "hardhat compile",
+    "deploy": "deploy.js",
+    "test": "hardhat test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Marmaduk0x/SimpleStorage.git"
+  },
+  "author": "Marmaduk0x",
+  "dependencies": {
+    "dotenv": "^16.0.0",
+    "ethers": "^5.6.7",
+    "hardhat": "^2.9.9",
+    "@nomiclabs/hardhat-ethers": "^2.0.4",
+    "web3.js": "^1.7.3"
+  },
+  "engines": {
+    "node": ">=14.17.0"
+  },
+  "bugs": {
+    "url": "https://github.com/Marmaduk0x/SimpleStorage/issues"
+  },
+  "homepage": "https://github.com/Marmaduk0x/SimpleStorage#readme"
+}
