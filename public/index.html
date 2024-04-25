@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SimpleStorage Interface</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.ethers.io/lib/ethers-5.2.umd.min.js"></script>
+</head>
+<body>
+    <h2>SimpleStorage Smart Contract Interface</h2>
+    <label for="numberInput">Enter a number:</label>
+    <input type="number" id="numberInput">
+    <button id="storeBtn">Store Number</button>
+    <button id="retrieveBtn">Retrieve Number</button>
+    <p id="retrievedValue"></p>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const provider = new ethers.providers.Web3Provider(window.ethereum);
+            const signer = provider.getSigner();
+            const contractAddress = "YOUR_CONTRACT_ADDRESS";
+            const contractABI = YOUR_CONTRACT_ABI; 
+            const contract = new ethers.Contract(contractAddress, contractABI, signer);
+
+            document.querySelector('#storeBtn').addEventListener('click', async () => {
+                const number = document.querySelector('#numberInput').value;
+                try {
+                    const transactionResponse = await contract.store(number);
+                    await transactionResponse.wait();
+                    alert('Number stored successfully!');
+                } catch (error) {
+                    console.error('Error storing number:', error);
+                    alert('Failed to store number. See console for more details.');
+                }
+            });
+
+            document.querySelector('#retrieveBtn').addEventListener('click', async () => {
+                try {
+                    const number = await contract.retrieve();
+                    document.querySelector('#retrievedValue').textContent = `Stored Number: ${number}`;
+                } catch (error) {
+                    console.error('Error retrieving number:', error);
+                    alert('Failed to retrieve number. See console for more details.');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
