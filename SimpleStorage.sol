@@ -1,14 +1,15 @@
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-contract SimpleStorage {
+contract EnhancedSimpleStorage {
     
-    uint256 private storedData;
+    uint256 private _storedNumber;
 
-    function set(uint256 num) public {
-        storedData = num;
+    function storeNumber(uint256 number) public {
+        _storedNumber = number;
     }
 
-    function get() public view returns (uint256){
-        return storedData;
+    function retrieveNumber() public view returns (uint256){
+        return _storedNumber;
     }
 }
