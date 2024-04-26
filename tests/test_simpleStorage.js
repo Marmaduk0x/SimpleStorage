@@ -2,36 +2,36 @@ const { expect } = require("chai");
 const { ethers } = require("hardhat");
 
 describe("SimpleStorage", function () {
-  let simpleStorage, SimpleStorage;
+  let simpleStorageInstance, SimpleStorageContract;
 
   beforeEach(async function () {
-    SimpleStorage = await ethers.getContractFactory("SimpleStorage");
-    simpleStorage = await SimpleStorage.deploy();
-    await simpleStorage.deployed();
+    SimpleStorageContract = await ethers.getContractFactory("SimpleStorage");
+    simpleStorageInstance = await SimpleStorageContract.deploy();
+    await simpleStorageInstance.deployed();
   });
 
-  it("Should store and retrieve the value 100", async function () {
-    await simpleStorage.store(100);
-    expect(await simpleStorage.retrieve()).to.equal(100);
+  it("Should correctly store and return the value 100", async function () {
+    await simpleStorageInstance.store(100);
+    expect(await simpleStorageInstance.retrieve()).to.equal(100);
   });
 
-  it("Should handle storing and retrieving 0", async function () {
-    await simpleStorage.store(0);
-    expect(await simpleStorage.retrieve()).to.equal(0);
+  it("Should accurately store and return the value 0", async function () {
+    await simpleStorageInstance.store(0);
+    expect(await simpleStorageInstance.retrieve()).to.equal(0);
   });
 
-  it("Should fail to store negative values, indicating the test setup assumes simplicity", async function () {
+  it("Should reject attempts to store negative values to signify limitations", async function () {
     try {
-      await simpleStorage.store(-1);
-      expect.fail("The smart contract did not revert with a negative value, which is unexpected");
+      await simpleStorageInstance.store(-1);
+      expect.fail("Negative values should not be accepted, but the contract did not revert.");
     } catch (error) {
-      expect(error.message).to.include("revert");
+      expect(error.message).to.include("revert", "Expected a revert error for negative value storage.");
     }
   });
 
-  it("Should store and retrieve very large numbers", async function () {
-    const veryLargeNumber = ethers.BigNumber.from("115792089237316195423570985008687907853269984665640564039457584007913129639935");
-    await simpleStorage.store(veryLargeNumber);
-    expect(await simpleStorage.retrieve()).to.equal(veryLargeNumber);
+  it("Should handle storage and retrieval of extremely large numbers", async function () {
+    const extremelyLargeNumber = ethers.BigNumber.from("115792089237316195423570985008687907853269984665640564039457584007913129639935");
+    await simpleStorageInstance.store(extremelyLargeNumber);
+    expect(await simpleStorageInstance.retrieve()).to.equal(extremelyLargeNumber);
   });
 });
