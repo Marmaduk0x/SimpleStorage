@@ -4,6 +4,16 @@
     <meta charset="UTF-8">
     <title>SimpleStorage Interface</title>
     <link rel="stylesheet" href="styles.css">
+    <style>
+      body {
+        background-color: white;
+        color: black;
+      }
+      body.dark-mode {
+        background-color: #333;
+        color: white;
+      }
+    </style>
     <script src="https://cdn.ethers.io/lib/ethers-5.2.umd.min.js"></script>
 </head>
 <body>
@@ -12,16 +22,19 @@
     <input type="number" id="numberInput">
     <button id="storeBtn">Store Number</button>
     <button id="retrieveBtn">Retrieve Number</button>
+    <button id="darkModeToggle">Toggle Dark Mode</button>
     <p id="retrievedValue"></p>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            // Setup Contract
             const provider = new ethers.providers.Web3Provider(window.ethereum);
             const signer = provider.getSigner();
             const contractAddress = "YOUR_CONTRACT_ADDRESS";
-            const contractABI = YOUR_CONTRACT_ABI; 
+            const contractABI = YOUR_CONTRACT_ABI;
             const contract = new ethers.Contract(contractAddress, contractABI, signer);
 
+            // Store Number
             document.querySelector('#storeBtn').addEventListener('click', async () => {
                 const number = document.querySelector('#numberInput').value;
                 try {
@@ -34,6 +47,7 @@
                 }
             });
 
+            // Retrieve Number
             document.querySelector('#retrieveBtn').addEventListener('click', async () => {
                 try {
                     const number = await contract.retrieve();
@@ -43,6 +57,13 @@
                     alert('Failed to retrieve number. See console for more details.');
                 }
             });
+
+            // Toggle Dark Mode
+            const toggleDarkMode = () => {
+                document.body.classList.toggle('dark-mode');
+            };
+            
+            document.querySelector('#darkModeToggle').addEventListener('click', toggleDarkMode);
         });
     </script>
 </body>
