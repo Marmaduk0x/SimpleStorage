@@ -8,7 +8,10 @@ contract EnhancedSimpleStorage {
         _storedNumber = 0;
     }
 
+    uint256 public constant MAX_NUMBER = 10**18; 
+
     function storeNumber(uint256 number) public {
+        require(number <= MAX_NUMBER, "Number is too large");
         _storedNumber = number;
         emit NumberStored(_storedNumber);
     }
