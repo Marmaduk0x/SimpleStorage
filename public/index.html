@@ -23,6 +23,7 @@
     <button id="storeBtn">Store Number</button>
     <button id="retrieveBtn">Retrieve Number</button>
     <button id="darkModeToggle">Toggle Dark Mode</button>
+    <button id="clearNumber">Clear Number</button> <!-- New Button Added -->
     <p id="retrievedValue"></p>
 
     <script>
@@ -64,6 +65,12 @@
             };
             
             document.querySelector('#darkModeToggle').addEventListener('click', toggleDarkMode);
+
+            // Clear Number
+            document.querySelector('#clearNumber').addEventListener('click', () => {
+                document.querySelector('#retrievedValue').textContent = '';
+                document.querySelector('#numberInput').value = '';
+            });
         });
     </script>
 </body>
