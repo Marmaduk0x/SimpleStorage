@@ -8,39 +8,35 @@ const providerURL = process.env.PROVIDER_URL;
 
 let web3 = new Web3(new Web3.providers.HttpProvider(providerURL));
 let SimpleStorageContract = new web3.eth.Contract(contractABI, contractAddress);
+
 let account;
 
 async function setup() {
-    const accounts = await web3.eth.getAccounts();
-    account = accounts[0];
+    account = (await web3.eth.getAccounts())[0];
 }
 
 async function estimateGas(tx, account) {
     return tx.estimateGas({from: account});
 }
 
-async function getGasPrice() {
-    return web3.eth.getGasPrice();
+async function getGasPriceAndNonce(account) {
+    const gasPrice = await web3.eth.getGasPrice();
+    const nonce = await web3.eth.getTransactionCount(account);
+
+    return { gasPrice, nonce };
 }
 
-async function getNonce(account) {
-    return web3.eth.getTransactionCount(account);
-}
-
-async function signTransaction(txObject, privateKey) {
-    return web3.eth.accounts.signTransaction(txObject, privateKey);
-}
-
-async function sendSignedTransaction(signedTx) {
+async function signAndSendTransaction(txObject, privateKey) {
+    const signedTx = await signTransaction(txObject, privateKey);
     return web3.eth.sendSignedTransaction(signedTx.rawTransaction);
 }
 
 async function storeData(value) {
     const tx = SimpleStorageContract.methods.store(value);
     const gas = await estimateGas(tx, account);
-    const gasPrice = await getGasPrice();
+    const { gasPrice, nonce } = await getGasPriceAndNonce(account);
+
     const data = tx.encodeABI();
-    const nonce = await getNonce(account);
 
     const txObject = {
         to: contractAddress,
@@ -51,9 +47,7 @@ async function storeData(value) {
         chainId: 3 // Make sure to replace '3' with the actual chainId of your network
     };
 
-    const signedTx = await signTransaction(txObject, privateKey);
-
-    sendSignedTransaction(signedTx)
+    signAndSendTransaction(txObject, privateKey)
         .then(receipt => console.log('Transaction receipt', receipt))
         .catch(err => console.error('Error sending transaction', err));
 }
