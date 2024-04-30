@@ -12,48 +12,76 @@ let SimpleStorageContract = new web3.eth.Contract(contractABI, contractAddress);
 let account;
 
 async function setup() {
-    account = (await web3.eth.getAccounts())[0];
+    try {
+        account = (await web3.eth.getAccounts())[0];
+    } catch (err) {
+        console.error('Setup Error:', err);
+        throw err; // Re-throw to signal setup failure
+    }
 }
 
 async function estimateGas(tx, account) {
-    return tx.estimateGas({from: account});
+    try {
+        return await tx.estimateGas({ from: account });
+    } catch (err) {
+        console.error('Estimate Gas Error:', err);
+        throw err; // Re-throw to manage upstream
+    }
 }
 
 async function getGasPriceAndNonce(account) {
-    const gasPrice = await web3.eth.getGasPrice();
-    const nonce = await web3.eth.getTransactionCount(account);
-
-    return { gasPrice, nonce };
+    try {
+        const gasPrice = await web3.eth.getGasPrice();
+        const nonce = await web3.eth.getTransactionCount(account);
+        return { gasPrice, nonce };
+    } catch (err) {
+        console.error('Gas Price & Nonce Error:', err);
+        throw err; // Ensuring errors are caught and handled appropriately
+    }
 }
 
 async function signAndSendTransaction(txObject, privateKey) {
-    const signedTx = await signTransaction(txObject, privateKey);
-    return web3.eth.sendSignedTransaction(signedTx.rawTransaction);
+    try {
+        const signedTx = await web3.eth.accounts.signTransaction(txObject, privateKey);
+        return web3.eth.sendSignedTransaction(signedTx.rawTransaction);
+    } catch (err) {
+        console.error('Sign and Send Transaction Error:', err);
+        throw err; // Error propagated to calling function for handling
+    }
 }
 
 async function storeData(value) {
-    const tx = SimpleStorageContract.methods.store(value);
-    const gas = await estimateGas(tx, account);
-    const { gasPrice, nonce } = await getGasPriceAndNonce(account);
+    try {
+        const tx = SimpleStorageContract.methods.store(value);
+        const gas = await estimateGas(tx, account);
+        const { gasPrice, nonce } = await getGasPriceAndNonce(account);
 
-    const data = tx.encodeABI();
+        const data = tx.encodeABI();
 
-    const txObject = {
-        to: contractAddress,
-        data,
-        gas,
-        gasPrice,
-        nonce,
-        chainId: 3 // Make sure to replace '3' with the actual chainId of your network
-    };
+        const txObject = {
+            to: contractAddress,
+            data,
+            gas,
+            gasPrice,
+            nonce,
+            chainId: 3 // Adjust based on network
+        };
 
-    signAndSendTransaction(txObject, privateKey)
-        .then(receipt => console.log('Transaction receipt', receipt))
-        .catch(err => console.error('Error sending transaction', err));
+        await signAndSendTransaction(txObject, privateKey)
+            .then(receipt => console.log('Transaction receipt', receipt))
+            .catch(err => console.error('Error sending transaction', err));
+    } catch (err) {
+        console.error('Store Data Error:', err);
+    }
 }
 
 async function retrieveData() {
-    return SimpleStorageContract.methods.retrieve().call();
+    try {
+        return await SimpleStorageContract.methods.retrieve().call();
+    } catch (err) {
+        console.error('Retrieve Data Error:', err);
+        throw err; // re-throw the error if needed or handle it as per your logic
+    }
 }
 
 function setupEventListeners() {
