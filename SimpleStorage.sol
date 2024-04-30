@@ -8,27 +8,31 @@ contract EnhancedSimpleStorage {
 
     event NumberStored(uint256 indexed newNumber);
 
+    error NumberTooLarge(uint256 providedNumber, uint256 maxAllowed);
+
     constructor() {
         _storedNumber = 0;
     }
 
     function storeNumber(uint256 number) public {
-        require(number <= MAX_NUMBER, "Number is too large");
+        if (number > MAX_NUMBER) {
+            revert NumberTooLarge({providedNumber: number, maxAllowed: MAX_NUMBER});
+        }
         _storedNumber = number;
         emit NumberStored(_storedNumber);
     }
 
-    // New function for storing multiple numbers
     function storeMultipleNumbers(uint256[] memory numbers) public {
         for (uint i = 0; i < numbers.length; i++) {
-            require(numbers[i] <= MAX_NUMBER, "One of the numbers is too large");
-            // Note: This overwrites _storedNumber each time.
+            if (numbers[i] > MAX_NUMBER) {
+                revert NumberTooLarge({providedNumber: numbers[i], maxAllowed: MAX_NUMBER});
+            }
             _storedNumber = numbers[i];
             emit NumberStored(_storedNumber);
         }
     }
 
-    function retrieveNumber() public view returns (uint256){
+    function retrieveNumber() public view returns (uint256) {
         return _storedNumber;
     }
 }
