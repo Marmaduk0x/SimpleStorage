@@ -75,6 +75,31 @@ async function storeData(value) {
     }
 }
 
+async function incrementStoredValue(amount) {
+    try {
+        const tx = SimpleStorageContract.methods.increment(amount);
+        const gas = await estimateGas(tx, account);
+        const { gasPrice, nonce } = await getGasPriceAndNonce(account);
+
+        const data = tx.encodeABI();
+
+        const txObject = {
+            to: contractAddress,
+            data,
+            gas,
+            gasPrice,
+            nonce,
+            chainId: 3 // Remember to adjust this based on your network
+        };
+
+        await signAndSendTransaction(txObject, privateKey)
+            .then(receipt => console.log('Increment transaction receipt', receipt))
+            .catch(err => console.error('Error incrementing value', err));
+    } catch (err) {
+        console.error('Increment Stored Value Error:', err);
+    }
+}
+
 async function retrieveData() {
     try {
         return await SimpleStorageContract.methods.retrieve().call();
@@ -91,6 +116,16 @@ function setupEventListeners() {
             console.log("Data stored successfully");
         }).catch(err => {
             console.log("Error storing data", err);
+        });
+    });
+
+    // Adding event listener for incrementing value
+    document.getElementById("incrementButton").addEventListener("click", function () {
+        let amount = document.getElementById("incrementAmount").value;
+        incrementStoredValue(amount).then(() => {
+            console.log("Value incremented successfully");
+        }).catch(err => {
+            console.log("Error incrementing value", err);
         });
     });
 
