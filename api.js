@@ -13,9 +13,11 @@ let account;
 
 async function setup() {
     try {
-        account = (await web3.eth.getAccounts())[0];
+        const accounts = await web3.eth.getAccounts();
+        if (accounts.length === 0) throw new Error("No accounts found. Ensure your provider is correctly configured.");
+        account = accounts[0];
     } catch (err) {
-        console.error('Setup Error:', err);
+        console.error('Setup Error: Failed to initialize account. Details:', err.message || err);
         throw err; // Re-throw to signal setup failure
     }
 }
@@ -24,7 +26,7 @@ async function estimateGas(tx, account) {
     try {
         return await tx.estimateGas({ from: account });
     } catch (err) {
-        console.error('Estimate Gas Error:', err);
+        console.error('Estimate Gas Error: Failed to estimate gas. Details:', err.message || err);
         throw err; // Re-throw to manage upstream
     }
 }
@@ -33,9 +35,10 @@ async function getGasPriceAndNonce(account) {
     try {
         const gasPrice = await web3.eth.getGasPrice();
         const nonce = await web3.eth.getTransactionCount(account);
+        if (!gasPrice || !Number.isFinite(nonce)) throw new Error("Failed to retrieve gas price or nonce.");
         return { gasPrice, nonce };
     } catch (err) {
-        console.error('Gas Price & Nonce Error:', err);
+        console.error('Gas Price & Nonce Error: Failed to retrieve necessary transaction parameters. Details:', err.message || err);
         throw err; // Ensuring errors are caught and handled appropriately
     }
 }
@@ -43,9 +46,10 @@ async function getGasPriceAndNonce(account) {
 async function signAndSendTransaction(txObject, privateKey) {
     try {
         const signedTx = await web3.eth.accounts.signTransaction(txObject, privateKey);
+        if (!signedTx.rawTransaction) throw new Error("Failed to sign transaction.");
         return web3.eth.sendSignedTransaction(signedTx.rawTransaction);
     } catch (err) {
-        console.error('Sign and Send Transaction Error:', err);
+        console.error('Sign and Send Transaction Error: Failed to sign or send the transaction. Details:', err.message || err);
         throw err; // Error propagated to calling function for handling
     }
 }
@@ -55,6 +59,8 @@ async function storeData(value) {
         const tx = SimpleStorageContract.methods.store(value);
         const gas = await estimateGas(tx, account);
         const { gasPrice, nonce } = await getGasPriceAndNonce(account);
+
+        if (!gas || !gasPrice || nonce === undefined) throw new Error("Transaction parameters invalid.");
 
         const data = tx.encodeABI();
 
@@ -68,10 +74,10 @@ async function storeData(value) {
         };
 
         await signAndSendTransaction(txObject, privateKey)
-            .then(receipt => console.log('Transaction receipt', receipt))
-            .catch(err => console.error('Error sending transaction', err));
+            .then(receipt => console.log('Transaction receipt:', receipt))
+            .catch(err => console.error('Error sending transaction:', err.message || err));
     } catch (err) {
-        console.error('Store Data Error:', err);
+        console.error('Store Data Error: Failed to store data. Details:', err.message || err);
     }
 }
 
@@ -80,6 +86,8 @@ async function incrementStoredValue(amount) {
         const tx = SimpleStorageContract.methods.increment(amount);
         const gas = await estimateGas(tx, account);
         const { gasPrice, nonce } = await getGasPriceAndNonce(account);
+        
+        if (!gas || !gasPrice || nonce === undefined) throw new Error("Transaction parameters invalid.");
 
         const data = tx.encodeABI();
 
@@ -93,10 +101,10 @@ async function incrementStoredValue(amount) {
         };
 
         await signAndSendTransaction(txObject, privateKey)
-            .then(receipt => console.log('Increment transaction receipt', receipt))
-            .catch(err => console.error('Error incrementing value', err));
+            .then(receipt => console.log('Increment transaction receipt:', receipt))
+            .catch(err => console.error('Error incrementing value:', err.message || err));
     } catch (err) {
-        console.error('Increment Stored Value Error:', err);
+        console.error('Increment Stored Value Error: Failed to increment value. Details:', err.message || err);
     }
 }
 
@@ -104,7 +112,7 @@ async function retrieveData() {
     try {
         return await SimpleStorageContract.methods.retrieve().call();
     } catch (err) {
-        console.error('Retrieve Data Error:', err);
+        console.error('Retrieve Data Error: Failed to retrieve data. Details:', err.message || err);
         throw err; // re-throw the error if needed or handle it as per your logic
     }
 }
@@ -115,17 +123,16 @@ function setupEventListeners() {
         storeData(value).then(() => {
             console.log("Data stored successfully");
         }).catch(err => {
-            console.log("Error storing data", err);
+            console.log("Error storing data:", err.message || err);
         });
     });
 
-    // Adding event listener for incrementing value
     document.getElementById("incrementButton").addEventListener("click", function () {
         let amount = document.getElementById("incrementAmount").value;
         incrementStoredValue(amount).then(() => {
             console.log("Value incremented successfully");
         }).catch(err => {
-            console.log("Error incrementing value", err);
+            console.log("Error incrementing value:", err.message || err);
         });
     });
 
@@ -134,7 +141,7 @@ function setupEventListeners() {
             console.log("Retrieved value:", value);
             document.getElementById("retrievedValue").innerText = `Retrieved Value: ${value}`;
         }).catch(err => {
-            console.log("Error retrieving data", err);
+            console.log("Error retrieving data:", err.message || err);
         });
     });
 }
@@ -142,4 +149,4 @@ function setupEventListeners() {
 setup().then(() => {
     console.log('Web3 setup complete.');
     setupEventListeners();
-}).catch(err => console.error('Web3 setup failed:', err));
+}).catch(err => console.error('Web3 setup failed:', err.message || err));
